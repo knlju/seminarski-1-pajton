@@ -45,20 +45,21 @@ def interface():
             image = PhotoImage(file="sprites/tile00" + str(i) + ".jpg")
             images.append(image)
 
+        container = canvas.create_image(0, 0, anchor=NW, image=images[0])
         while True:
             for image in images:
-                canvas.create_image(0, 0, anchor=NW, image=image)
+                canvas.itemconfig(container, image=image)
                 time.sleep(0.1)
 
     Thread(target=animate, args=()).start()
 
     # BODY -----------------------------------
 
-    body = Frame(root, background='white', bd=1)
-    body.pack_propagate(0)
-    body.pack(side=TOP)
+    body = Frame(root, background='white', bd=1, width=800, height=700)
+    body.grid_propagate(0)
+    body.pack(side=TOP, expand=True)
 
-    listbox_odgovori_servera = Listbox(body)
+    listbox_odgovori_servera = Listbox(body, width=132)
 
     # otvori tabelu
     def otb_click():
@@ -84,13 +85,13 @@ def interface():
     # obrisi_tabelu_btn = Button(body, text="Obrisi tabelu bre", command=lambda: run_request_thread(mrs_click))
     # obrisi_tabelu_btn.grid(row=1, column=2)
 
-    label_naziv = Label(body, text="Naziv:")
+    label_naziv = Label(body, text="Naziv:", pady=10)
     label_naziv.grid(row=2, column=1)
 
     text_naziv = Text(body, height=1, width=40)
     text_naziv.grid(row=2, column=2)
 
-    label_cena = Label(body, text="Cena:")
+    label_cena = Label(body, text="Cena:", pady=10)
     label_cena.grid(row=3, column=1)
 
     text_cena = Text(body, height=1, width=40)
@@ -110,7 +111,7 @@ def interface():
     dodaj_zapis_btn = Button(body, text="Dodaj zapis", command=lambda: run_request_thread(dz_click))
     dodaj_zapis_btn.grid(row=4, column=2)
 
-    label_nadji_id = Label(body, text="Naziv:")
+    label_nadji_id = Label(body, text="Naziv:", pady=10)
     label_nadji_id.grid(row=5, column=1)
 
     text_nadji_naziv = Text(body, height=1, width=40)
@@ -134,7 +135,7 @@ def interface():
     obrisi_po_id_btn = Button(body, text="Nadji po nazivu", command=lambda: run_request_thread(nadji_po_nazivu))
     obrisi_po_id_btn.grid(row=5, column=3)
 
-    label_citaj_po_id = Label(body, text="Nadji po ID:")
+    label_citaj_po_id = Label(body, text="Nadji po ID:", pady=10)
     label_citaj_po_id.grid(row=6, column=1)
 
     text_nadji_id = Text(body, height=1, width=40)
@@ -159,7 +160,7 @@ def interface():
     nadji_po_id_btn = Button(body, text="Nadji po ID", command=lambda: run_request_thread(nadji_zapis_id_click))
     nadji_po_id_btn.grid(row=6, column=3)
 
-    label_iscitan_id = Label(body, text="Iscitan ID:")
+    label_iscitan_id = Label(body, text="Iscitan ID:", pady=10)
     label_iscitan_id.grid(row=7, column=1)
 
     text_iscitan_id_prikaz = Text(body, height=1, width=40)
@@ -178,7 +179,7 @@ def interface():
     obrisi_po_id_btn = Button(body, text="Obrisi po ID", command=lambda: run_request_thread(obrisi_zapis_click))
     obrisi_po_id_btn.grid(row=7, column=3)
 
-    label_iscitan_naziv = Label(body, text="Iscitan naziv:")
+    label_iscitan_naziv = Label(body, text="Iscitan naziv:", pady=10)
     label_iscitan_naziv.grid(row=8, column=1)
 
     text_iscitan_naziv = Text(body, height=1, width=40)
@@ -197,7 +198,7 @@ def interface():
     obrisi_po_id_btn = Button(body, text="Update naziv", command=lambda: run_request_thread(update_naziv))
     obrisi_po_id_btn.grid(row=8, column=3)
 
-    listbox_odgovori_servera.grid(row=10, column=2)
+    listbox_odgovori_servera.grid(row=10, column=1, columnspan=3, sticky='NSEW')
 
     # FOOTER ------------------------------
 
