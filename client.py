@@ -21,9 +21,15 @@ def connect():
 
 def run_request_thread(callback):
     try:
-        Thread(target=callback, args=()).start()
+        Thread(target=callback, daemon=False).start()
     except:
         print("conn err")
+
+
+def dodaj_poruku(lb, poruka):
+    global COUNT
+    lb.insert(COUNT, poruka)
+    COUNT += 1
 
 
 def interface():
@@ -51,7 +57,7 @@ def interface():
                 canvas.itemconfig(container, image=image)
                 time.sleep(0.1)
 
-    Thread(target=animate, args=()).start()
+    Thread(target=animate, daemon=False).start()
 
     # BODY -----------------------------------
 
@@ -59,31 +65,28 @@ def interface():
     body.grid_propagate(0)
     body.pack(side=TOP, expand=True)
 
-    listbox_odgovori_servera = Listbox(body, width=132)
+    listbox_odgovori_servera = Listbox(body, width=113)
 
     # otvori tabelu
     def otb_click():
-        global COUNT
         s = connect()
         s.send(str(["kreiraj_tabelu"]).encode())
         data = s.recv(1024)
         s.close()
-        listbox_odgovori_servera.insert(COUNT, data)
-        COUNT += 1
+        dodaj_poruku(listbox_odgovori_servera, data)
 
     otvori_tabelu_btn = Button(body, text="Napravi novu tabelu", command=lambda: run_request_thread(otb_click))
     otvori_tabelu_btn.grid(row=1, column=1)
 
     # # otvori tabelu
-    # def mrs_click():
-    #     s = connect()
-    #     s.send(str(["obrisi_tabelu"]).encode())
-    #     data = s.recv(1024)
-    #     # print(data)
-    #     s.close()
-    #
-    # obrisi_tabelu_btn = Button(body, text="Obrisi tabelu bre", command=lambda: run_request_thread(mrs_click))
-    # obrisi_tabelu_btn.grid(row=1, column=2)
+    def mrs_click():
+        s = connect()
+        s.send(str(["obrisi_tabelu"]).encode())
+        data = s.recv(1024)
+        s.close()
+
+    obrisi_tabelu_btn = Button(body, text="Obrisi tabelu bre", command=lambda: run_request_thread(mrs_click))
+    obrisi_tabelu_btn.grid(row=1, column=2)
 
     label_naziv = Label(body, text="Naziv:", pady=10)
     label_naziv.grid(row=2, column=1)
@@ -99,14 +102,13 @@ def interface():
 
     # dodaj zapis
     def dz_click():
-        global COUNT
         s = connect()
         poruka = ["dodaj_zapis", text_naziv.get(1.0, END).strip(), text_cena.get(1.0, END).strip()]
         s.send(str(poruka).encode())
         data = s.recv(1024)
         s.close()
-        listbox_odgovori_servera.insert(COUNT, data)
-        COUNT += 1
+        for msg in data.decode('utf-8').split("\n"):
+            dodaj_poruku(listbox_odgovori_servera, msg)
 
     dodaj_zapis_btn = Button(body, text="Dodaj zapis", command=lambda: run_request_thread(dz_click))
     dodaj_zapis_btn.grid(row=4, column=2)
@@ -118,19 +120,20 @@ def interface():
     text_nadji_naziv.grid(row=5, column=2)
 
     def nadji_po_nazivu():
-        global COUNT
         s = connect()
         poruka = ["nadji_po_nazivu", text_nadji_naziv.get(1.0, END).strip()]
         s.send(str(poruka).encode())
         data = s.recv(1024)
         s.close()
-        listbox_odgovori_servera.insert(COUNT, data)
-        COUNT += 1
         parsed = eval(data)
+        for msg in parsed:
+            dodaj_poruku(listbox_odgovori_servera, msg)
+        if "nije_pronadjen" in data.decode('utf-8'):
+            return
         text_iscitan_naziv.delete(1.0, END)
-        text_iscitan_naziv.insert(END, parsed[1])
+        text_iscitan_naziv.insert(END, parsed[2])
         text_iscitan_id_prikaz.delete(1.0, END)
-        text_iscitan_id_prikaz.insert(END, str(parsed[0]))
+        text_iscitan_id_prikaz.insert(END, str(parsed[1]))
 
     obrisi_po_id_btn = Button(body, text="Nadji po nazivu", command=lambda: run_request_thread(nadji_po_nazivu))
     obrisi_po_id_btn.grid(row=5, column=3)
@@ -142,20 +145,20 @@ def interface():
     text_nadji_id.grid(row=6, column=2)
 
     def nadji_zapis_id_click():
-        global COUNT
-        global iscitan_id
         s = connect()
         poruka = ["nadji_zapis_id", text_nadji_id.get(1.0, END).strip()]
         s.send(str(poruka).encode())
         data = s.recv(1024)
         s.close()
-        listbox_odgovori_servera.insert(COUNT, data)
-        COUNT += 1
         parsed = eval(data)
+        for msg in parsed:
+            dodaj_poruku(listbox_odgovori_servera, msg)
+        if "nije_pronadjen" in data.decode('utf-8'):
+            return
         text_iscitan_naziv.delete(1.0, END)
-        text_iscitan_naziv.insert(END, parsed[1])
+        text_iscitan_naziv.insert(END, parsed[2])
         text_iscitan_id_prikaz.delete(1.0, END)
-        text_iscitan_id_prikaz.insert(END, str(parsed[0]))
+        text_iscitan_id_prikaz.insert(END, str(parsed[1]))
 
     nadji_po_id_btn = Button(body, text="Nadji po ID", command=lambda: run_request_thread(nadji_zapis_id_click))
     nadji_po_id_btn.grid(row=6, column=3)
@@ -167,14 +170,13 @@ def interface():
     text_iscitan_id_prikaz.grid(row=7, column=2)
 
     def obrisi_zapis_click():
-        global COUNT
         s = connect()
         poruka = ["obrisi_zapis", text_iscitan_id_prikaz.get(1.0, END).strip()]
         s.send(str(poruka).encode())
         data = s.recv(1024)
         s.close()
-        listbox_odgovori_servera.insert(COUNT, data)
-        COUNT += 1
+        for msg in data.decode('utf-8').split("\n"):
+            dodaj_poruku(listbox_odgovori_servera, msg)
 
     obrisi_po_id_btn = Button(body, text="Obrisi po ID", command=lambda: run_request_thread(obrisi_zapis_click))
     obrisi_po_id_btn.grid(row=7, column=3)
@@ -186,14 +188,13 @@ def interface():
     text_iscitan_naziv.grid(row=8, column=2)
 
     def update_naziv():
-        global COUNT
         s = connect()
         poruka = ["update_naziv", text_iscitan_id_prikaz.get(1.0, END).strip(), text_iscitan_naziv.get(1.0, END).strip()]
         s.send(str(poruka).encode())
         data = s.recv(1024)
         s.close()
-        listbox_odgovori_servera.insert(COUNT, data)
-        COUNT += 1
+        for msg in data.decode('utf-8').split("\n"):
+            dodaj_poruku(listbox_odgovori_servera, msg)
 
     obrisi_po_id_btn = Button(body, text="Update naziv", command=lambda: run_request_thread(update_naziv))
     obrisi_po_id_btn.grid(row=8, column=3)
